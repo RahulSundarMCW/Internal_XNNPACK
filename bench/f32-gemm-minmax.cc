@@ -2628,6 +2628,18 @@ static void f32_gemm_minmax_ukernel_4x4__scalar(benchmark::State& state, const c
 
 BENCHMARK_GEMM(f32_gemm_minmax_ukernel_4x4__scalar)
 
+static void f32_gemm_minmax_ukernel_32x32__neonsme2(benchmark::State& state, const char* net) {
+  GEMMBenchmark(state,
+    xnn_f32_gemm_minmax_ukernel_32x32__neonsme2,
+    xnn_init_f32_minmax_scalar_params,
+    xnn_pack_kai_f32_weights_and_biases,
+    xnn_packed_stride_kai_f32_weights_and_biases,
+    /*mr=*/32, /*nr=*/32, /*kr=*/1, /*sr=*/1,
+    /*isa_check=*/nullptr);
+}
+
+BENCHMARK_GEMM(f32_gemm_minmax_ukernel_32x32__neonsme2)
+
 #ifndef XNNPACK_BENCHMARK_NO_MAIN
 BENCHMARK_MAIN();
 #endif

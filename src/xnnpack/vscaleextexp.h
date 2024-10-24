@@ -9,6 +9,7 @@
 #include <stdint.h>
 
 #include "xnnpack/common.h"
+#include "xnnpack/microparams.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,6 +22,12 @@ extern "C" {
       float* output,                                       \
       float scale_mantissa,                                \
       float scale_exponent);
+
+  #define XNN_UKERNEL_WITH_PARAMS(arch_flags, ukernel, element_tile, datatype, params_type, init_params)
+  XNN_INTERNAL void ukernel(      
+      size_t n,const float* input, float* output, float scale_mantissa, float scale_exponent);
+#include "src/f32-vscaleextexp/f32-vscaleextexp.h"
+#undef XNN_UKERNEL_WITH_PARAMS
 
 DECLARE_F32_VSCALEEXTEXP_UKERNEL_FUNCTION(xnn_f32_vscaleextexp_ukernel__avx2_p5_u8)
 DECLARE_F32_VSCALEEXTEXP_UKERNEL_FUNCTION(xnn_f32_vscaleextexp_ukernel__avx2_p5_u16)
