@@ -130,3 +130,52 @@ class RAddStoreExpMinusMaxMicrokernelTester {
   size_t elements_{1};
   size_t iterations_{15};
 };
+
+#define XNN_TEST_RADDSTOREEXPMINUSMAX_ELEMENT_EQ(ukernel, arch_flags, element_tile, ...)                               \
+  TEST(ukernel, elements_eq_##element_tile)                                                                            \
+  {                                                                                                                    \
+    RAddStoreExpMinusMaxMicrokernelTester().elements(element_tile).Test(ukernel, __VA_ARGS__);                         \
+  }
+#define XNN_TEST_RADDSTOREEXPMINUSMAX_ELEMENT_DIV(ukernel, arch_flags, element_tile, element_scale, ...)               \
+  TEST(ukernel, elements_div_##element_tile)                                                                           \
+  {                                                                                                                    \
+    if (element_scale == "") {                                                                                         \
+      for (size_t elements = element_tile * 2; elements < element_tile * 10; elements += element_tile) {               \
+        RAddStoreExpMinusMaxMicrokernelTester().elements(elements).Test(ukernel, __VA_ARGS__);                         \
+      }                                                                                                                \
+    } else {                                                                                                           \
+      for (size_t elements = element_tile * 2 * element_scale;                                                         \
+                  elements < element_tile * 10 * element_scale;                                                        \
+                  elements += element_tile * element_scale) {                                                          \
+        RAddStoreExpMinusMaxMicrokernelTester().elements(elements).Test(ukernel, __VA_ARGS__);                         \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_RADDSTOREEXPMINUSMAX_ELEMENT_LT(ukernel, arch_flags, element_tile, element_scale, ...)                \
+  TEST(ukernel, elements_lt_##element_tile)                                                                            \
+  {                                                                                                                    \
+    if (element_scale == "") {                                                                                         \
+      for (size_t elements = 1; elements < element_tile; elements++) {                                                 \
+        RAddStoreExpMinusMaxMicrokernelTester().elements(elements).Test(ukernel, __VA_ARGS__);                         \
+      }                                                                                                                \
+    } else {                                                                                                           \
+      for (size_t elements = 1; elements < element_tile * element_scale; elements++) {                                 \
+        RAddStoreExpMinusMaxMicrokernelTester().elements(elements).Test(ukernel, __VA_ARGS__);                         \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_RADDSTOREEXPMINUSMAX_ELEMENT_GT(ukernel, arch_flags, element_tile, element_scale, ...)                \
+  TEST(ukernel, elements_gt_##element_tile)                                                                            \
+  {                                                                                                                    \
+    if (element_scale == "") {                                                                                         \
+      for (size_t elements = element_tile + 1; elements < (element_tile == 1 ? 10 : element_tile * 2); elements++) {   \
+        RAddStoreExpMinusMaxMicrokernelTester().elements(elements).Test(ukernel, __VA_ARGS__);                         \
+      }                                                                                                                \
+    } else {                                                                                                           \
+      for (size_t elements = element_tile * element_scale + 1;                                                         \
+                  elements < (element_tile == 1 ? 10 : element_tile * 2) * element_scale;                              \
+                  elements += element_tile) {                                                                          \
+        RAddStoreExpMinusMaxMicrokernelTester().elements(elements).Test(ukernel, __VA_ARGS__);                         \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
