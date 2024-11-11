@@ -204,8 +204,8 @@ tools/generate-lut-test.py --spec test/x8-lut.yaml --output test/x8-lut.cc &
 tools/generate-conv-hwc-test.py --spec test/f32-conv-hwc.yaml --output test/f32-conv-hwc.cc &
 
 ### Tests for Conv HWC2CHW layout micro-kernels
-tools/generate-conv-hwc2chw-test.py --spec test/f16-conv-hwc2chw.yaml --output test/f16-conv-hwc2chw.cc &
-tools/generate-conv-hwc2chw-test.py --spec test/f32-conv-hwc2chw.yaml --output test/f32-conv-hwc2chw.cc &
+tools/generate-conv-hwc2chw-test.py --tester ConvHWC2CHWMicrokernelTester --ukernel f16-conv-hwc2chw --output test/f16-conv-hwc2chw.cc &
+tools/generate-conv-hwc2chw-test.py --tester ConvHWC2CHWMicrokernelTester --ukernel f32-conv-hwc2chw --output test/f32-conv-hwc2chw.cc &
 
 ### Tests for DWConv micro-kernels
 tools/generate-dwconv-unipass-test.py --ukernel f16-dwconv-minmax-unipass --output test/f16-dwconv-minmax-unipass.cc &

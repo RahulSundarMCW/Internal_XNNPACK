@@ -519,3 +519,353 @@ class ConvHWC2CHWMicrokernelTester {
   uint8_t qmax_{255};
   size_t iterations_{1};
 };
+
+
+#define XNN_TEST_CONV_HWC2CHW_INPUT_WIDTH_EQ(                                                                          \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, input_width_eq)                                                                                        \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    ConvHWC2CHWMicrokernelTester()                                                                                     \
+      .kernel_size(kernel_sizes)                                                                                       \
+      .subsampling(subsamplings)                                                                                       \
+      .padding_width(padding_right_)                                                                                   \
+      .input_channels(input_channel)                                                                                   \
+      .output_channels_tile(output_channel_tile)                                                                       \
+      .output_channels(output_channel_tile)                                                                            \
+      .input_width(input_widths)                                                                                       \
+      .input_height(kernel_sizes)                                                                                      \
+      .Test(ukernel, init_params);                                                                                     \
+  }
+
+#define XNN_TEST_CONV_HWC2CHW_INPUT_WIDTH_DIV(                                                                         \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, input_width_div)                                                                                       \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t input_widths_ = input_widths * 2; input_widths_ <= (input_widths * 8);                                 \
+         input_widths_ += input_widths * 3) {                                                                          \
+      ConvHWC2CHWMicrokernelTester()                                                                                   \
+        .kernel_size(kernel_sizes)                                                                                     \
+        .subsampling(subsamplings)                                                                                     \
+        .padding_width(padding_right_)                                                                                 \
+        .input_channels(input_channel)                                                                                 \
+        .output_channels_tile(output_channel_tile)                                                                     \
+        .output_channels(output_channel_tile)                                                                          \
+        .input_width(input_widths)                                                                                     \
+        .input_height(kernel_sizes)                                                                                    \
+        .Test(ukernel, init_params);                                                                                   \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_CONV_HWC2CHW_INPUT_WIDTH_LT(                                                                          \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, input_width_lt)                                                                                        \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths; input_widths_++) {              \
+      ConvHWC2CHWMicrokernelTester()                                                                                   \
+        .kernel_size(kernel_sizes)                                                                                     \
+        .subsampling(subsamplings)                                                                                     \
+        .padding_width(padding_right_)                                                                                 \
+        .input_channels(input_channel)                                                                                 \
+        .output_channels_tile(output_channel_tile)                                                                     \
+        .output_channels(output_channel_tile)                                                                          \
+        .input_width(input_widths_)                                                                                    \
+        .input_height(kernel_sizes)                                                                                    \
+        .Test(ukernel, init_params);                                                                                   \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_INPUT_WIDTH_GT(                                                                          \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, input_width_gt)                                                                                        \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t input_widths_ = input_widths + 1; input_widths_ < ((input_widths == 1) ? 33 : input_widths * 2);       \
+         input_widths_++) {                                                                                            \
+      ConvHWC2CHWMicrokernelTester()                                                                                   \
+        .kernel_size(kernel_sizes)                                                                                     \
+        .subsampling(subsamplings)                                                                                     \
+        .padding_width(padding_right_)                                                                                 \
+        .input_channels(input_channel)                                                                                 \
+        .output_channels_tile(output_channel_tile)                                                                     \
+        .output_channels(output_channel_tile)                                                                          \
+        .input_width(input_widths_)                                                                                    \
+        .input_height(kernel_sizes)                                                                                    \
+        .Test(ukernel, init_params);                                                                                   \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_OUTPUT_CHANNELS_LT(                                                                      \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, output_channels_lt)                                                                                    \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t output_channels = 1; output_channels < output_channel_tile; output_channels++) {                       \
+      for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                           \
+           input_widths_ += (input_widths * 2 - 1)) {                                                                  \
+        ConvHWC2CHWMicrokernelTester()                                                                                 \
+          .kernel_size(kernel_sizes)                                                                                   \
+          .subsampling(subsamplings)                                                                                   \
+          .padding_width(padding_right_)                                                                               \
+          .input_channels(input_channel)                                                                               \
+          .output_channels_tile(output_channel_tile)                                                                   \
+          .output_channels(output_channels)                                                                            \
+          .input_width(input_widths_)                                                                                  \
+          .input_height(kernel_sizes)                                                                                  \
+          .Test(ukernel, init_params);                                                                                 \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_OUTPUT_CHANNELS_DIV(                                                                     \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, output_channels_div)                                                                                   \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t output_channels = output_channel_tile * 2; output_channels <= output_channel_tile * 4;                 \
+         output_channels += output_channel_tile) {                                                                     \
+      for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                           \
+           input_widths_ += (input_widths * 2 - 1)) {                                                                  \
+        ConvHWC2CHWMicrokernelTester()                                                                                 \
+          .kernel_size(kernel_sizes)                                                                                   \
+          .subsampling(subsamplings)                                                                                   \
+          .padding_width(padding_right_)                                                                               \
+          .input_channels(input_channel)                                                                               \
+          .output_channels_tile(output_channel_tile)                                                                   \
+          .output_channels(output_channels)                                                                            \
+          .input_width(input_widths_)                                                                                  \
+          .input_height(kernel_sizes)                                                                                  \
+          .Test(ukernel, init_params);                                                                                 \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_OUTPUT_CHANNELS_GT(                                                                      \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, output_channels_gt)                                                                                    \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t output_channels = output_channel_tile + 1; output_channels < output_channel_tile * 2;                  \
+         output_channels++) {                                                                                          \
+      for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                           \
+           input_widths_ += (input_widths * 2 - 1)) {                                                                  \
+        ConvHWC2CHWMicrokernelTester()                                                                                 \
+          .kernel_size(kernel_sizes)                                                                                   \
+          .subsampling(subsamplings)                                                                                   \
+          .padding_width(padding_right_)                                                                               \
+          .input_channels(input_channel)                                                                               \
+          .output_channels_tile(output_channel_tile)                                                                   \
+          .output_channels(output_channels)                                                                            \
+          .input_width(input_widths_)                                                                                  \
+          .input_height(kernel_sizes)                                                                                  \
+          .Test(ukernel, init_params);                                                                                 \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_INPUT_HEIGHT_LT(                                                                         \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, input_height_lt)                                                                                       \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t input_heights = 1; input_heights < 3; input_heights++) {                                               \
+      for (size_t output_channels = 1; output_channels < output_channel_tile * 2;                                      \
+           output_channels += output_channel_tile - 1) {                                                               \
+        for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                         \
+             input_widths_ += (input_widths * 2 - 1)) {                                                                \
+          ConvHWC2CHWMicrokernelTester()                                                                               \
+            .kernel_size(kernel_sizes)                                                                                 \
+            .subsampling(subsamplings)                                                                                 \
+            .padding(1)                                                                                                \
+            .input_channels(input_channel)                                                                             \
+            .output_channels_tile(output_channel_tile)                                                                 \
+            .output_channels(output_channels)                                                                          \
+            .input_width(input_widths_)                                                                                \
+            .input_height(input_heights)                                                                               \
+            .Test(ukernel, init_params);                                                                               \
+        }                                                                                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_INPUT_HEIGHT_GT(                                                                         \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, input_height_gt)                                                                                       \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t input_heights = 4; input_heights <= 9; input_heights++) {                                              \
+      for (size_t output_channels = 1; output_channels < output_channel_tile * 2;                                      \
+           output_channels += output_channel_tile - 1) {                                                               \
+        for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                         \
+             input_widths_ += (input_widths * 2 - 1)) {                                                                \
+          ConvHWC2CHWMicrokernelTester()                                                                               \
+            .kernel_size(kernel_sizes)                                                                                 \
+            .subsampling(subsamplings)                                                                                 \
+            .padding_width(padding_right_)                                                                             \
+            .input_channels(input_channel)                                                                             \
+            .output_channels_tile(output_channel_tile)                                                                 \
+            .output_channels(output_channels)                                                                          \
+            .input_width(input_widths_)                                                                                \
+            .input_height(input_heights)                                                                               \
+            .Test(ukernel, init_params);                                                                               \
+        }                                                                                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_PADDING_TOP(                                                                             \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, padding_top)                                                                                           \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t padding_tops = 0; padding_tops <= 1; padding_tops++) {                                                 \
+      for (size_t output_channels = 1; output_channels < output_channel_tile * 4;                                      \
+           output_channels += (output_channel_tile * 2 - 1)) {                                                         \
+        for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                         \
+             input_widths_ += (input_widths * 2 - 1)) {                                                                \
+          ConvHWC2CHWMicrokernelTester()                                                                               \
+            .kernel_size(kernel_sizes)                                                                                 \
+            .subsampling(subsamplings)                                                                                 \
+            .padding_width(padding_right_)                                                                             \
+            .padding_top(padding_tops)                                                                                 \
+            .input_channels(input_channel)                                                                             \
+            .output_channels_tile(output_channel_tile)                                                                 \
+            .output_channels(output_channels)                                                                          \
+            .input_width(input_widths_)                                                                                \
+            .input_height(9)                                                                                           \
+            .Test(ukernel, init_params);                                                                               \
+        }                                                                                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_PADDING_BOTTOM(                                                                          \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, padding_bottom)                                                                                        \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t padding_bottoms = 0; padding_bottoms <= 1; padding_bottoms++) {                                        \
+      for (size_t output_channels = 1; output_channels < output_channel_tile * 4;                                      \
+           output_channels += (output_channel_tile * 2 - 1)) {                                                         \
+        for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                         \
+             input_widths_ += (input_widths * 2 - 1)) {                                                                \
+          ConvHWC2CHWMicrokernelTester()                                                                               \
+            .kernel_size(kernel_sizes)                                                                                 \
+            .subsampling(subsamplings)                                                                                 \
+            .padding_width(padding_right_)                                                                             \
+            .padding_bottom(padding_bottoms)                                                                           \
+            .input_channels(input_channel)                                                                             \
+            .output_channels_tile(output_channel_tile)                                                                 \
+            .output_channels(output_channels)                                                                          \
+            .input_width(input_widths_)                                                                                \
+            .input_height(9)                                                                                           \
+            .Test(ukernel, init_params);                                                                               \
+        }                                                                                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_OUTPUT_Y_START(                                                                          \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, output_y_start)                                                                                        \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t output_y_starts = 1; output_y_starts <= 3; output_y_starts++) {                                        \
+      for (size_t output_channels = 1; output_channels < output_channel_tile * 2;                                      \
+           output_channels += output_channel_tile - 1) {                                                               \
+        for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                         \
+             input_widths_ += (input_widths * 2 - 1)) {                                                                \
+          ConvHWC2CHWMicrokernelTester()                                                                               \
+            .kernel_size(kernel_sizes)                                                                                 \
+            .subsampling(subsamplings)                                                                                 \
+            .padding_width(padding_right_)                                                                             \
+            .input_channels(input_channel)                                                                             \
+            .output_channels_tile(output_channel_tile)                                                                 \
+            .output_channels(output_channels)                                                                          \
+            .input_width(input_widths_)                                                                                \
+            .input_height(9)                                                                                           \
+            .output_y_start(output_y_starts)                                                                           \
+            .Test(ukernel, init_params);                                                                               \
+        }                                                                                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_OUTPUT_Y_END(                                                                            \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, output_y_end)                                                                                          \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t output_y_ends = 2; output_y_ends < 5; output_y_ends++) {                                               \
+      for (size_t output_channels = 1; output_channels < output_channel_tile * 2;                                      \
+           output_channels += output_channel_tile - 1) {                                                               \
+        for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                         \
+             input_widths_ += (input_widths * 2 - 1)) {                                                                \
+          ConvHWC2CHWMicrokernelTester()                                                                               \
+            .kernel_size(kernel_sizes)                                                                                 \
+            .subsampling(subsamplings)                                                                                 \
+            .padding_width(padding_right_)                                                                             \
+            .input_channels(input_channel)                                                                             \
+            .output_channels_tile(output_channel_tile)                                                                 \
+            .output_channels(output_channels)                                                                          \
+            .input_width(input_widths_)                                                                                \
+            .input_height(9)                                                                                           \
+            .output_y_end(output_y_ends)                                                                               \
+            .Test(ukernel, init_params);                                                                               \
+        }                                                                                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_QMIN(                                                                                    \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, qmin)                                                                                                  \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t output_channels = 1; output_channels < output_channel_tile * 2;                                        \
+         output_channels += output_channel_tile - 1) {                                                                 \
+      for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                           \
+           input_widths_ += (input_widths * 2 - 1)) {                                                                  \
+        ConvHWC2CHWMicrokernelTester()                                                                                 \
+          .kernel_size(kernel_sizes)                                                                                   \
+          .subsampling(subsamplings)                                                                                   \
+          .padding_width(padding_right_)                                                                               \
+          .input_channels(input_channel)                                                                               \
+          .output_channels_tile(output_channel_tile)                                                                   \
+          .output_channels(output_channels)                                                                            \
+          .input_width(input_widths_)                                                                                  \
+          .input_height(6)                                                                                             \
+          .qmin(128)                                                                                                   \
+          .Test(ukernel, init_params);                                                                                 \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+#define XNN_TEST_CONV_HWC2CHW_QMAX(                                                                                    \
+  ukernel, arch_flags, kernel_sizes, subsamplings, padding_right_, padding_left_, input_channel, output_channel_tile,  \
+  input_widths, init_params, ...)                                                                                      \
+  TEST(ukernel, qmax)                                                                                                  \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    for (size_t output_channels = 1; output_channels < output_channel_tile * 2;                                        \
+         output_channels += output_channel_tile - 1) {                                                                 \
+      for (size_t input_widths_ = (padding_left_ ? 1 : 2); input_widths_ < input_widths * 8;                           \
+           input_widths_ += (input_widths * 2 - 1)) {                                                                  \
+        ConvHWC2CHWMicrokernelTester()                                                                                 \
+          .kernel_size(kernel_sizes)                                                                                   \
+          .subsampling(subsamplings)                                                                                   \
+          .padding_width(padding_right_)                                                                               \
+          .input_channels(input_channel)                                                                               \
+          .output_channels_tile(output_channel_tile)                                                                   \
+          .output_channels(output_channels)                                                                            \
+          .input_width(input_widths_)                                                                                  \
+          .input_height(6)                                                                                             \
+          .qmax(128)                                                                                                   \
+          .Test(ukernel, init_params);                                                                                 \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
