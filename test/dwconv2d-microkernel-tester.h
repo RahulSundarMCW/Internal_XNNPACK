@@ -318,3 +318,222 @@ class DWConv2DMicrokernelTester {
   uint8_t qmax_{255};
   size_t iterations_{1};
 };
+
+
+#define XNN_TEST_DWCONV2D_OUTPUT_WIDTH_EQ(                                                                             \
+  ukernel, arch_flags, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, init_params, ...)   \
+  if (subsampling == 1) {                                                                                              \
+    TEST(ukernel, output_width_eq)                                                                                     \
+    {                                                                                                                  \
+      DWConv2DMicrokernelTester()                                                                                      \
+        .input_width((width_tile - 1) * subsampling + kernel_width - 2 * padding)                                      \
+        .input_height(height_tile* subsampling + kernel_height - 2 * padding - 1)                                      \
+        .kernel_height(kernel_height)                                                                                  \
+        .kernel_width(kernel_width)                                                                                    \
+        .subsampling(subsampling)                                                                                      \
+        .padding_left(padding)                                                                                         \
+        .padding_right(padding)                                                                                        \
+        .padding_top(padding)                                                                                        \
+        .padding_bottom(padding)                                                                                        \
+        .Test(ukernel, init_params);                                                                                   \
+    }                                                                                                                  \
+  }                                                                                                                    \
+  else {                                                                                                               \
+    TEST(ukernel, output_width_eq)                                                                                     \
+    {                                                                                                                  \
+      DWConv2DMicrokernelTester()                                                                                      \
+        .input_width((width_tile - 1) * subsampling + kernel_width - 2 * padding)                                      \
+        .input_height(height_tile* subsampling + kernel_height - 2 * padding - 1)                                      \
+        .kernel_height(kernel_height)                                                                                  \
+        .kernel_width(kernel_width)                                                                                    \
+        .subsampling(subsampling)                                                                                      \
+        .padding_left(padding)                                                                                         \
+        .padding_right(padding)                                                                                        \
+        .padding_top(padding)                                                                                        \
+        .padding_bottom(padding)                                                                                        \
+        .Test(ukernel, init_params);                                                                                   \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_DWCONV2D_OUTPUT_WIDTH_DIV(                                                                            \
+  ukernel, arch_flags, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, init_params, ...)   \
+  TEST(ukernel, output_width_div)                                                                                      \
+  {                                                                                                                    \
+    for (size_t input_widths = 2 * width_tile * subsampling + kernel_width - 2 * padding - 1;                          \
+         input_widths < (8 * width_tile * subsampling + kernel_width - 2 * padding - 1);                               \
+         input_widths += width_tile * subsampling) {                                                                   \
+      DWConv2DMicrokernelTester()                                                                                      \
+        .input_width(input_widths)                                                                                     \
+        .input_height(height_tile* subsampling + kernel_height - 2 * padding - 1)                                      \
+        .kernel_height(kernel_height)                                                                                  \
+        .kernel_width(kernel_width)                                                                                    \
+        .subsampling(subsampling)                                                                                      \
+        .padding_left(padding)                                                                                         \
+        .padding_right(padding)                                                                                        \
+        .padding_top(padding)                                                                                        \
+        .padding_bottom(padding)                                                                                        \
+        .Test(ukernel, init_params);                                                                                   \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_DWCONV2D_OUTPUT_WIDTH_LT(                                                                             \
+  ukernel, arch_flags, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, init_params, ...)   \
+  TEST(ukernel, output_width_lt)                                                                                       \
+  {                                                                                                                    \
+    for (size_t input_widths = max(1, (kernel_width - 2 * padding));                                                   \
+         input_widths < ((width_tile - 1) * subsampling + kernel_width - 2 * padding); input_widths++) {               \
+      DWConv2DMicrokernelTester()                                                                                      \
+        .input_width(width_tile* subsampling)                                                                          \
+        .input_height(height_tile* subsampling + kernel_height - 2 * padding - 1)                                      \
+        .kernel_height(kernel_height)                                                                                  \
+        .kernel_width(kernel_width)                                                                                    \
+        .subsampling(subsampling)                                                                                      \
+        .padding_left(padding)                                                                                         \
+        .padding_right(padding)                                                                                        \
+        .padding_top(padding)                                                                                        \
+        .padding_bottom(padding)                                                                                        \
+        .Test(ukernel, init_params);                                                                                   \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_DWCONV2D_OUTPUT_WIDTH_GT(                                                                             \
+  ukernel, arch_flags, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, init_params, ...)   \
+  TEST(ukernel, output_width_gt)                                                                                       \
+  {                                                                                                                    \
+    for (size_t input_widths = width_tile * subsampling + kernel_width - 2 * padding;                                  \
+         input_widths < (((width_tile == 1) ? 5 : 2) * width_tile * subsampling + kernel_width - 2 * padding);         \
+         input_widths++) {                                                                                             \
+      DWConv2DMicrokernelTester()                                                                                      \
+        .input_width(input_widths)                                                                                     \
+        .input_height(height_tile* subsampling + kernel_height - 2 * padding - 1)                                      \
+        .kernel_height(kernel_height)                                                                                  \
+        .kernel_width(kernel_width)                                                                                    \
+        .subsampling(subsampling)                                                                                      \
+        .padding_left(padding)                                                                                         \
+        .padding_right(padding)                                                                                        \
+        .padding_top(padding)                                                                                        \
+        .padding_bottom(padding)                                                                                        \
+        .Test(ukernel, init_params);                                                                                   \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_DWCONV2D_OUTPUT_HEIGHT_EQ(                                                                            \
+  ukernel, arch_flags, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, init_params, ...)   \
+  TEST(ukernel, output_height_eq)                                                                                      \
+  {                                                                                                                    \
+    for (size_t input_heights = ((height_tile - 1) * subsampling + kernel_height - 2 * padding);                       \
+         input_heights < (height_tile * subsampling + kernel_height - 2 * padding); input_heights++) {                 \
+      for (size_t input_widths = 1; input_widths < (5 * width_tile * subsampling + kernel_width - 2 * padding);        \
+           input_widths += max(1, width_tile * subsampling - 1)) {                                                     \
+        DWConv2DMicrokernelTester()                                                                                    \
+          .input_width(input_widths)                                                                                   \
+          .input_height(input_heights)                                                                                 \
+          .kernel_height(kernel_height)                                                                                \
+          .kernel_width(kernel_width)                                                                                  \
+          .subsampling(subsampling)                                                                                    \
+          .padding_left(padding)                                                                                       \
+          .padding_right(padding)                                                                                      \
+          .padding_top(padding)                                                                                      \
+          .padding_bottom(padding)                                                                                      \
+          .Test(ukernel, init_params);                                                                                 \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_DWCONV2D_OUTPUT_HEIGHT_DIV(                                                                           \
+  ukernel, arch_flags, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, init_params, ...)   \
+  TEST(ukernel, output_height_div)                                                                                     \
+  {                                                                                                                    \
+    for (size_t input_heights = (2 * height_tile * subsampling + kernel_height - 2 * padding) - 1;                     \
+         input_heights < (8 * height_tile * subsampling + kernel_height - 2 * padding - 1);                            \
+         input_heights += height_tile * subsampling) {                                                                 \
+      for (size_t input_widths = 1; input_widths < (5 * width_tile * subsampling + kernel_width - 2 * padding);        \
+           input_widths += max(1, width_tile * subsampling - 1)) {                                                     \
+        DWConv2DMicrokernelTester()                                                                                    \
+          .input_width(input_widths)                                                                                   \
+          .input_height(input_heights)                                                                                 \
+          .kernel_height(kernel_height)                                                                                \
+          .kernel_width(kernel_width)                                                                                  \
+          .subsampling(subsampling)                                                                                    \
+          .padding_left(padding)                                                                                       \
+          .padding_right(padding)                                                                                      \
+          .padding_top(padding)                                                                                      \
+          .padding_bottom(padding)                                                                                      \
+          .Test(ukernel, init_params);                                                                                 \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_DWCONV2D_OUTPUT_HEIGHT_LT(                                                                            \
+  ukernel, arch_flags, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, init_params, ...)   \
+  TEST(ukernel, output_height_lt)                                                                                      \
+  {                                                                                                                    \
+    for (size_t input_heights = (max(1, kernel_height - 2 * padding));                                                 \
+         input_heights < ((height_tile - 1) * subsampling + kernel_height - 2 * padding); input_heights++) {           \
+      for (size_t input_widths = 1; input_widths < (5 * width_tile * subsampling + kernel_width - 2 * padding);        \
+           input_widths += max(1, width_tile * subsampling - 1)) {                                                     \
+        DWConv2DMicrokernelTester()                                                                                    \
+          .input_width(input_widths)                                                                                   \
+          .input_height(input_heights)                                                                                 \
+          .kernel_height(kernel_height)                                                                                \
+          .kernel_width(kernel_width)                                                                                  \
+          .subsampling(subsampling)                                                                                    \
+          .padding_left(padding)                                                                                       \
+          .padding_right(padding)                                                                                      \
+          .padding_top(padding)                                                                                      \
+          .padding_bottom(padding)                                                                                      \
+          .Test(ukernel, init_params);                                                                                 \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_DWCONV2D_OUTPUT_HEIGHT_GT(                                                                            \
+  ukernel, arch_flags, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, init_params, ...)   \
+  TEST(ukernel, output_height_gt)                                                                                      \
+  {                                                                                                                    \
+    for (size_t input_heights = (height_tile * subsampling + kernel_height - 2 * padding);                             \
+         input_heights < (((width_tile == 1) ? 5 : 2) * height_tile * subsampling + kernel_height - 2 * padding);      \
+         input_heights++) {                                                                                            \
+      for (size_t input_widths = 1; input_widths < (5 * width_tile * subsampling + kernel_width - 2 * padding);        \
+           input_widths += max(1, width_tile * subsampling - 1)) {                                                     \
+        DWConv2DMicrokernelTester()                                                                                    \
+          .input_width(input_widths)                                                                                   \
+          .input_height(input_heights)                                                                                 \
+          .kernel_height(kernel_height)                                                                                \
+          .kernel_width(kernel_width)                                                                                  \
+          .subsampling(subsampling)                                                                                    \
+          .padding_left(padding)                                                                                       \
+          .padding_right(padding)                                                                                      \
+          .padding_top(padding)                                                                                      \
+          .padding_bottom(padding)                                                                                      \
+          .Test(ukernel, init_params);                                                                                 \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_DWCONV2D_PADDING_TOP_EQ(                                                                              \
+  ukernel, arch_flags, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, init_params, ...)   \
+  if (subsampling > 1) {                                                                                               \
+    TEST(ukernel, padding_top_eq)                                                                                      \
+    {                                                                                                                  \
+      subsampling--;                                                                                                   \
+      for (size_t input_heights = (max(1, kernel_height - 2 * padding + 1));                                           \
+           input_heights < (((width_tile == 1) ? 5 : 2) * height_tile * subsampling + kernel_height - 2 * padding);    \
+           input_heights++) {                                                                                          \
+        for (size_t input_widths = 1; input_widths < (5 * width_tile * subsampling + kernel_width - 2 * padding);      \
+             input_widths += max(1, width_tile * subsampling - 1)) {                                                   \
+          DWConv2DMicrokernelTester()                                                                                  \
+            .input_width(input_widths)                                                                                 \
+            .input_height(input_heights)                                                                               \
+            .kernel_height(kernel_height)                                                                              \
+            .kernel_width(kernel_width)                                                                                \
+            .subsampling(subsampling)                                                                                  \
+            .padding_left(padding)                                                                                     \
+            .padding_right(padding)                                                                                    \
+            .padding_top(padding)                                                                                    \
+            .padding_bottom(padding)                                                                                    \
+            .Test(ukernel, init_params);                                                                               \
+        }                                                                                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }

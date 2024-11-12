@@ -418,6 +418,18 @@ DECLARE_F32_DWCONV2D_CHW_MINMAX_UKERNEL_FUNCTION(xnn_f32_dwconv2d_chw_ukernel_5x
 DECLARE_F32_DWCONV2D_CHW_MINMAX_UKERNEL_FUNCTION(xnn_f32_dwconv2d_chw_ukernel_5x5s2p2__wasmsimd_x86_splat_3x4)
 DECLARE_F32_DWCONV2D_CHW_MINMAX_UKERNEL_FUNCTION(xnn_f32_dwconv2d_chw_ukernel_5x5s2p2__wasmsimd_x86_splat_3x4_acc2)
 
+// #define XNN_UKERNEL(arch_flags, fn_name, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, datatype) \
+//   XNN_INTERNAL void fn_name(                                      \
+//     size_t input_height,                                          \
+//     size_t input_width,                                           \
+//     const float* input,                                           \
+//     const float* weights,                                         \
+//     const float* zero,                                            \
+//     float* output,                                                \
+//     uint32_t padding_top,                                         \
+//     const union xnn_f32_minmax_params params[XNN_RESTRICT XNN_MIN_ELEMENTS(1)]);
+// #include "f32-dwconv2d-chw/f32-dwconv2d-chw.h"
+// #undef XNN_UKERNEL
 
 #define DECLARE_F16_DWCONV2D_CHW_MINMAX_UKERNEL_FUNCTION(fn_name) \
   XNN_INTERNAL void fn_name(                                      \
@@ -474,6 +486,19 @@ DECLARE_F16_DWCONV2D_CHW_MINMAX_UKERNEL_FUNCTION(xnn_f16_dwconv2d_chw_ukernel_5x
 DECLARE_F16_DWCONV2D_CHW_MINMAX_UKERNEL_FUNCTION(xnn_f16_dwconv2d_chw_ukernel_5x5s2p2__neonfp16arith_2x8_acc3)
 DECLARE_F16_DWCONV2D_CHW_MINMAX_UKERNEL_FUNCTION(xnn_f16_dwconv2d_chw_ukernel_5x5s2p2__neonfp16arith_3x8)
 DECLARE_F16_DWCONV2D_CHW_MINMAX_UKERNEL_FUNCTION(xnn_f16_dwconv2d_chw_ukernel_5x5s2p2__neonfp16arith_3x8_acc2)
+
+// #define XNN_UKERNEL(arch_flags, fn_name, kernel_height, kernel_width, subsampling, padding, height_tile, width_tile, datatype) \
+//   XNN_INTERNAL void fn_name(                                      \
+//     size_t input_height,                                          \
+//     size_t input_width,                                           \
+//     const xnn_float16* input,                            \
+//     const xnn_float16* weights,                          \
+//     const xnn_float16* zero,                             \
+//     xnn_float16* output,                                 \
+//     uint32_t padding_top,                                         \
+//     const union xnn_f16_minmax_params params[XNN_RESTRICT XNN_MIN_ELEMENTS(1)]);
+// #include "f16-dwconv2d-chw/f16-dwconv2d-chw.h"
+// #undef XNN_UKERNEL
 
 #ifdef __cplusplus
 }  // extern "C"
