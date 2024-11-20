@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <random>
 #include <vector>
+// #include <utility>
 
 #include <gtest/gtest.h>
 #include "xnnpack.h"
@@ -290,3 +291,14 @@ class ArgMaxPoolMicrokernelTester {
   size_t output_stride_{0};
   size_t iterations_{3};
 };
+
+#define XNN_TEST_ARGMAXPOOL_CHANNELS_EQ_UNIPASS(                                                                       \
+  ukernel, arch_flags, primary_tile, incremental_tile, channel_tile, channel_scaled_tile, init_params, ...)            \
+  TEST(ukernel, channels_eq_unipass_fulltile)                                                                          \
+  {                                                                                                                    \
+    ArgMaxPoolMicrokernelTester()                                                                                      \
+      .pooling_elements(primary_tile)                                                                                  \
+      .pooling_tile(((incremental_tile == 0) ? primary_tile : std::make_pair(primary_tile, incremental_tile)))         \
+      .channels(channel_tile)                                                                                          \
+      .Test(ukernel);                                                                                                  \
+  }
