@@ -70,23 +70,13 @@ std::vector<GemmTestParams> CreateTests(
       size_t mr_packed,
     bool is_igemm,
     std::function<void(GemmMicrokernelTester& tester)> test_func) {
-  size_t nr_scale = "";
-  if vector_tile:
-  ctype = {
-      "qs8": "int8_t",
-      "qd8": "int32_t",
-      "qp8": "int8_t",
-      "qu8": "uint8_t",
-      "f16": "uint16_t",
-      "f32": "float",
-  }[datatype]
-  nr_scale = {"rvv": " * xnn_init_hardware_config()->vlenb / sizeof(%s)" % ctype}[isa]
+  
   size_t adj_k_block = is_pipelined ? k_block * 2 : k_block;
   std::string kbs = std::to_string(k_block);
   std::string kb2s = std::to_string(k_block * 2);
   std::string akbs = std::to_string(adj_k_block);
-  if (nr_scale != ""):
-    nr = nr + nr_scale;
+  $if NR_SCALE != "":
+    nr = nr${NR_SCALE};
   std::string nrs = std::to_string(nr);
 
   $if DATATYPE in ('qp8',):
@@ -103,9 +93,9 @@ std::vector<GemmTestParams> CreateTests(
       "k_eq_" + kbs,
       tester.clone()
           .m(mr).n(nr).k(k_block)
-          $if KERNELTYPE in ['qb4w', 'qc4w']:
+          if KERNELTYPE in ['qb4w', 'qc4w']:
             .b_zero_point(8)
-          $if KERNELTYPE in ['qb4w']:
+          if KERNELTYPE in ['qb4w']:
             .bl(32)
       , test_func));
   $if DATATYPE != "qp8":
@@ -315,7 +305,7 @@ std::vector<GemmTestParams> CreateTests(
               $if KERNELTYPE in ['qb4w']:
                 .bl(32)
           , test_func)
-          if (nr_scale != ""):
+          $if NR_SCALE != "":
             .loop_n(nr + 1, nr * 2 - 1, 4)
           else:
             .loop_n(nr + 1, nr * 2 - 1)
@@ -333,7 +323,7 @@ std::vector<GemmTestParams> CreateTests(
                 $if KERNELTYPE in ['qb4w']:
                   .bl(32)
             , test_func)
-            if (nr_scale != ""):
+            $if NR_SCALE != "":
               .loop_n(nr + 1, nr * 2 - 1, 4)
             else:
               .loop_n(nr + 1, nr * 2 - 1)
@@ -349,7 +339,7 @@ std::vector<GemmTestParams> CreateTests(
                 $if KERNELTYPE in ['qb4w']:
                   .bl(32)
             , test_func)
-            if (nr_scale != ""):
+            $if NR_SCALE != "":
               .loop_n(nr + 1, nr * 2 - 1, 4)
             else:
               .loop_n(nr + 1, nr * 2 - 1)
@@ -364,7 +354,7 @@ std::vector<GemmTestParams> CreateTests(
               $if KERNELTYPE in ['qb4w']:
                 .bl(32)
           , test_func)
-          if (nr_scale != ""):
+          $if NR_SCALE != "":
             .loop_n(nr + 1, nr * 2 - 1, 4)
           else:
             .loop_n(nr + 1, nr * 2 - 1)
@@ -452,7 +442,7 @@ std::vector<GemmTestParams> CreateTests(
                 $if KERNELTYPE in ['qb4w']:
                   .bl(32)
             , test_func)
-            if (nr_scale != ""):
+            $if NR_SCALE != "":
               .loop_n(nr + 1, nr * 2 - 1, 4)
             else:
               .loop_n(nr + 1, nr * 2 - 1)
@@ -582,11 +572,8 @@ std::vector<GemmTestParams> CreateTests(
 # GEMM_TEST_CODE = """\
 TEST_TEMPLATE = """\
 #define XNN_GEMM(arch_flags, ukernel, k_block, is_pipelined,
-    mr, nr, kr, sr,
-    $if DATATYPE in ('qp8'): mr_packed, is_igemm, datatype, params_type, init_params)
+    mr, nr, kr, sr, mr_packed, is_igemm, datatype, params_type, init_params)
 
-$if CPP_CHECK:
-  #if ${CPP_CHECK}
 INSTANTIATE_TEST_SUITE_P(
     ukernel, GemmTest,
     testing::ValuesIn(CreateTests(
@@ -650,13 +637,12 @@ $if TEST_NAME.startswith('GENERATE') and DATATYPE in ['f32', 'f16'] and PROTOTYP
             &${PROTOTYPE});
     }
   #endif // XNN_ENABLE_ASSEMBLY
-$if CPP_CHECK:
-  #endif  // ${CPP_CHECK}
 """
 
 
 def main(args):
   options = parser.parse_args(args)
+  num_output_files = len(options.output_test)
   ukernel = options.ukernel
 
   tests = """\
@@ -691,11 +677,32 @@ def main(args):
 #include "gemm-microkernel-tester.h"
 #include "next_prime.h"
 """.format(ukernel=ukernel, generator=sys.argv[0])
-
-  test_cases = ""
+  
+  test_outputs = collections.defaultdict(str)
   parts = ukernel.split("-")
   datatype = parts[0]
-  
+  if len(ukernel.split("-")) > 3:
+    datatype, ukernel_type, activation, _ = ukernel.split("-", 3)
+  elif len(ukernel.split("-")) > 2:
+    datatype, ukernel_type, activation = ukernel.split("-", 2)
+  else:
+    datatype, ukernel_type = ukernel.split("-", 1)
+
+  kerneltype = datatype
+
+  if datatype in ["f16", "f32"] and ukernel_type in ["qc8w", "qc4w"]:
+    if len(ukernel.split("-")) > 3 :
+      datatype, kerneltype, ukernel_type, activation = ukernel.split("-", 4)
+    else:
+      datatype, kerneltype, ukernel_type = ukernel.split("-", 3)
+    datatype = f"{datatype}-{kerneltype}"   
+  if (
+    datatype in ("qd8", "qp8")
+    and ukernel_type in ["f16", "f32"]
+    and activation in ["qc8w", "qc4w", "qb4w"]
+  ):
+    datatype, _, kerneltype, ukernel_type, activation = ukernel.split("-", 5)
+
   if "igemm" in parts:
     folder = f"{datatype}-igemm"
   elif "gemm" in parts or "ppmm" in parts:
@@ -718,10 +725,33 @@ def main(args):
     requantization = "rndnu"
   else:
     requantization = None
+  
+  # if "__" in ukernel:
+  #   common_name, target_name = ukernel.split("__", 1)
+  # else:
+  #   common_name = ukernel
+  #   target_name = ""
+
+  # common_parts = common_name.split("_")
+  # param_spec = common_parts[-1]
+  
+  nr_scale = ""
+  # if "v" in param_spec:
+  #   ctype = {
+  #     "qs8": "int8_t",
+  #     "qd8": "int32_t",
+  #     "qp8": "int8_t",
+  #     "qu8": "uint8_t",
+  #     "f16": "uint16_t",
+  #     "f32": "float",
+  #     }[datatype]
+  #   nr_scale = {"rvv": f" * xnn_init_hardware_config()->vlenb / sizeof({ctype})"}[isa]
 
   create_tests_args = {
     "DATATYPE": datatype,
     "ACTIVATION": activation.upper(),
+    "NR_SCALE": nr_scale,
+    "KERNELTYPE": kerneltype,
   }
   create_tests = xngen.preprocess(GEMM_CREATE_TESTS_CODE, create_tests_args)
   create_tests = (
@@ -729,8 +759,7 @@ def main(args):
     + "\n".join([create_tests])
     + "\n}  // namespace\n"
   )
-  tests = test_header + "\n" + create_tests + "\n" + test_cases
-  test_args = ["ukernel", "init_params"]
+  test_args = ["ukernel", "init_params", "pack_fn"]
   if requantization:
     requantization_datatype = {"qc8": "qs8"}.get(datatype, datatype)
     test_args.append(
@@ -741,13 +770,20 @@ def main(args):
       TEST_TEMPLATE,
       {
         "TEST_ARGS": test_args,
+        "DATATYPE": datatype,
+        "UKERNEL_TYPE": ukernel_type,
+        "TEST_NAME": ukernel.upper().replace("UKERNEL_", ""),
       },
   ))
-  tests += f'#include "{xnncommon.xnnpack_src()}{folder}/{options.ukernel}.h"\n'
+  tests += f'#include "{xnncommon.xnnpack_src()}{folder}/{ukernel}.h"\n'
   tests += "#undef XNN_UKERNEL_WITH_PARAMS\n"
 
-  xnncommon.overwrite_if_changed(options.output, tests)
+  output_index = zlib.crc32(bytes(ukernel, "utf-8")) % num_output_files
+  test_outputs[options.output_test[output_index]] += "\n\n"
 
+  for output_name, content in test_outputs.items():
+    xnncommon.overwrite_if_changed(output_name, tests + content)
+  # xnncommon.overwrite_if_changed(options.output, tests)
 
 if __name__ == "__main__":
   main(sys.argv[1:])

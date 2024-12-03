@@ -23,7 +23,7 @@ tools/generate-gemm-test.py --ukernel f32-qc8w-gemm-relu   --output-test test/f3
 tools/generate-gemm-test.py --ukernel f32-qc8w-gemm-minmax --output-test test/f32-qc8w-gemm-minmax.cc &
 
 tools/generate-gemm-test.py --ukernel qu8-gemm-minmax-fp32 --output-test test/qu8-gemm-minmax-fp32.cc --output-test test/qu8-gemm-minmax-fp32-2.cc &
-tools/generate-gemm-test.py --spec test/qu8-gemm-minmax-rndnu --output-test test/qu8-gemm-minmax-rndnu.cc --output-test test/qu8-gemm-minmax-rndnu-2.cc &
+tools/generate-gemm-test.py --ukernel qu8-gemm-minmax-rndnu --output-test test/qu8-gemm-minmax-rndnu.cc --output-test test/qu8-gemm-minmax-rndnu-2.cc &
 
 tools/generate-gemm-test.py --ukernel qd8-f16-qc4w-gemm-minmax --output-test test/qd8-f16-qc4w-gemm-minmax.cc  --output-test test/qd8-f16-qc4w-gemm-minmax-2.cc  --output-test test/qd8-f16-qc4w-gemm-minmax-3.cc  --output-test test/qd8-f16-qc4w-gemm-minmax-4.cc &
 tools/generate-gemm-test.py --ukernel qd8-f16-qb4w-gemm-minmax --output-test test/qd8-f16-qb4w-gemm-minmax.cc &
