@@ -24,7 +24,6 @@ parser.add_argument("-k", "--ukernel", required=True,
 parser.add_argument(
     "-o",
     "--output-test",
-    action="append",
     metavar="FILE",
     required=True,
     help="Test output (C++ source) file(s)")
@@ -645,7 +644,7 @@ def main(args):
   num_output_files = len(options.output_test)
   ukernel = options.ukernel
 
-  tests = """\
+  test_header = """\
 // Copyright (c) Facebook, Inc. and its affiliates.
 // All rights reserved.
 //
@@ -678,7 +677,16 @@ def main(args):
 #include "next_prime.h"
 """.format(ukernel=ukernel, generator=sys.argv[0])
   
-  test_outputs = collections.defaultdict(str)
+  test_cases = ""
+  
+  # test_outputs = collections.defaultdict(str)
+
+  # isa_hierarchy = xnncommon.isa_hierarchy_map()
+  # idx_from_create_tests_hash = collections.defaultdict(
+  #   lambda: len(idx_from_create_tests_hash) + 1
+  # )
+  # create_tests_from_idx = {}  
+  
   parts = ukernel.split("-")
   datatype = parts[0]
   if len(ukernel.split("-")) > 3:
@@ -759,6 +767,8 @@ def main(args):
     + "\n".join([create_tests])
     + "\n}  // namespace\n"
   )
+  tests = test_header + "\n" + create_tests + "\n" + test_cases
+  
   test_args = ["ukernel", "init_params", "pack_fn"]
   if requantization:
     requantization_datatype = {"qc8": "qs8"}.get(datatype, datatype)
@@ -775,15 +785,20 @@ def main(args):
         "TEST_NAME": ukernel.upper().replace("UKERNEL_", ""),
       },
   ))
+
   tests += f'#include "{xnncommon.xnnpack_src()}{folder}/{ukernel}.h"\n'
   tests += "#undef XNN_UKERNEL_WITH_PARAMS\n"
 
-  output_index = zlib.crc32(bytes(ukernel, "utf-8")) % num_output_files
-  test_outputs[options.output_test[output_index]] += "\n\n"
+  # output_index = zlib.crc32(bytes(ukernel, "utf-8")) % num_output_files
+  # test_outputs[options.output_test[output_index]] += "\n\n" 
 
-  for output_name, content in test_outputs.items():
-    xnncommon.overwrite_if_changed(output_name, tests + content)
-  # xnncommon.overwrite_if_changed(options.output, tests)
+  # for output_name, content in test_outputs.items():
+  #   print(f"Debug: options.output_test = {options.output_test}")
+  #   if not output_name or output_name in ["/", ".", ".."]:
+  #       print(f"Skipping invalid output_name: {output_name}")
+  #       continue
+  #   xnncommon.overwrite_if_changed(output_name, tests + content)
+  xnncommon.overwrite_if_changed(options.output_test, tests)
 
 if __name__ == "__main__":
   main(sys.argv[1:])
