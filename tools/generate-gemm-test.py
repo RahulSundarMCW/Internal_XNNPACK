@@ -572,8 +572,7 @@ std::vector<GemmTestParams> CreateTests(
 # GEMM_TEST_CODE = """\
 TEST_TEMPLATE = """\
 #define XNN_GEMM(arch_flags, ukernel, k_block, is_pipelined,
-    mr, nr, kr, sr, mr_packed, is_igemm, datatype, params_type, init_params)
-
+    mr, nr, kr, sr, mr_packed, is_igemm, datatype, params_type, init_params, pack_fn)
 INSTANTIATE_TEST_SUITE_P(
     ukernel, GemmTest,
     testing::ValuesIn(CreateTests(
@@ -698,7 +697,8 @@ def main(args):
       datatype, kerneltype, ukernel_type, activation = ukernel.split("-", 4)
     else:
       datatype, kerneltype, ukernel_type = ukernel.split("-", 3)
-    datatype = f"{datatype}-{kerneltype}"   
+    datatype = f"{datatype}-{kerneltype}" 
+ 
   if (
     datatype in ("qd8", "qp8")
     and ukernel_type in ["f16", "f32"]
@@ -706,14 +706,12 @@ def main(args):
   ):
     datatype, _, kerneltype, ukernel_type, activation = ukernel.split("-", 5)
 
-  if "igemm" in parts:
-    folder = f"{datatype}-igemm"
-  elif "gemm" in parts or "ppmm" in parts:
-    folder = f"{datatype}-{parts[1]}-{parts[2] if len(parts) > 2 and parts[2] not in ['fp32', 'rndnu'] else ''}".strip("-")
-  elif "qc8w" in parts or "qc4w" in parts or "qb4w" in parts:
-    folder = f"{datatype}-{'-'.join(part for part in parts if part.startswith('qc') or part.startswith('qb'))}-gemm"
-  else:
-    folder = datatype + "-gemm"
+  folder_parts = []
+  for part in parts:
+    folder_parts.append(part)
+    if part in ["gemm", "igemm", "ppmm", "gemminc"]:
+        break
+  folder = "-".join(folder_parts)
 
   if "minmax" in parts:
     activation = "minmax"
@@ -780,15 +778,15 @@ def main(args):
         "TEST_NAME": ukernel.upper().replace("UKERNEL_", ""),
       },
   ))
-
+  
   tests += f'#include "{xnncommon.xnnpack_src()}{folder}/{ukernel}.h"\n'
+  print("PATH = ", f"{xnncommon.xnnpack_src()}{folder}/{ukernel}.h")
   tests += "#undef XNN_UKERNEL_WITH_PARAMS\n"
 
   output_index = zlib.crc32(bytes(ukernel, "utf-8")) % num_output_files
-  test_outputs[options.output_test[output_index]] += "\n\n" 
+  test_outputs[options.output_test[output_index]] += "" 
 
   for output_name, content in test_outputs.items():
-    print(f"Debug: options.output_test = {options.output_test}")
     xnncommon.overwrite_if_changed(output_name, tests + content)
 
 if __name__ == "__main__":
