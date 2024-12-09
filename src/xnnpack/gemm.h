@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 
-#define XNN_GEMM_MINMAX(arch_flags, fn_name, k_block, is_pipelined, mr, nr, kr, sr, mr_packed, is_igemm, datatype, params_type, init_fn, pack_fn) \
+#define XNN_GEMM(arch_flags, fn_name, k_block, is_pipelined, mr, nr, kr, sr, mr_packed, is_igemm, datatype, params_type, init_fn, pack_fn) \
   void fn_name(                                            \
       size_t mr,                                           \
       size_t nc,                                           \
