@@ -28,39 +28,68 @@ parser.add_argument(
     metavar="FILE",
     required=True,
     help="Test output (C++ source) file(s)")
+parser.add_argument(
+    "-b",
+    "--output-bench",
+    metavar="FILE",
+    required=False,
+    help="Benchmark output (C++ source) file(s)")
 parser.set_defaults(defines=list())
 
-def split_ukernel_name(name):
-  common_name, target_name = name.split("__", 1)
-  common_parts = common_name.split("_")
-  param_spec = common_parts[-1]
-  if "k" in param_spec:
-    param_spec, sr = param_spec.split("k", 1)
-    sr = int(sr)
-  else:
-    sr = 1
-  if "c" in param_spec:
-    param_spec, kr = param_spec.split("c", 1)
-    kr = int(kr)
-  else:
-    kr = 1
-  if "v" in param_spec:
-    vector_tile = True
-    param_spec, _ = param_spec.split("v", 1)
-  else:
-    vector_tile = False
-  mr, nr = map(int, param_spec.split("x"))
-  arch, isa, assembly = xnncommon.parse_target_name(target_name)
-  mr_packed = re.search(r"mstep([0-9]+)", target_name)
-  if mr_packed:
-    mr_packed = mr // int(mr_packed.group(1))
-  else:
-    mr_packed = mr
-  requantization = common_parts[-3]
-  if requantization not in ["fp32", "rndnu", "rndnu16"]:
-    requantization = None
-  return mr, nr, kr, sr, mr_packed, vector_tile, requantization, arch, isa, assembly
+# def split_ukernel_name(name):
+#   common_name, target_name = name.split("__", 1)
+#   common_parts = common_name.split("_")
+#   param_spec = common_parts[-1]
+#   if "k" in param_spec:
+#     param_spec, sr = param_spec.split("k", 1)
+#     sr = int(sr)
+#   else:
+#     sr = 1
+#   if "c" in param_spec:
+#     param_spec, kr = param_spec.split("c", 1)
+#     kr = int(kr)
+#   else:
+#     kr = 1
+#   if "v" in param_spec:
+#     vector_tile = True
+#     param_spec, _ = param_spec.split("v", 1)
+#   else:
+#     vector_tile = False
+#   mr, nr = map(int, param_spec.split("x"))
+#   arch, isa, assembly = xnncommon.parse_target_name(target_name)
+#   mr_packed = re.search(r"mstep([0-9]+)", target_name)
+#   if mr_packed:
+#     mr_packed = mr // int(mr_packed.group(1))
+#   else:
+#     mr_packed = mr
+#   requantization = common_parts[-3]
+#   if requantization not in ["fp32", "rndnu", "rndnu16"]:
+#     requantization = None
+#   return mr, nr, kr, sr, mr_packed, vector_tile, requantization, arch, isa, assembly
 
+GEMM_BENCH_CODE = """\
+static void ${UKERNEL_NAME}(benchmark::State& state, const char* net) {
+  GEMMBenchmark(state,
+    ${GEMM},
+    $if INIT_PARAMS is not None:
+      ${INIT_PARAMS},
+    $if PACK_FN is not None:
+      ${PACK_FN},
+    $if PACKED_STRIDE_FN is not None:
+      ${PACKED_STRIDE_FN},
+    /*mr=*/${MR}, /*nr=*/${NR}${NR_SCALE}, /*kr=*/${KR}, /*sr=*/${SR},
+    $if DATATYPE in ('qp8',):
+      /*mr_packed=*/${MR_PACKED},
+    $if ISA_CHECK:
+      benchmark::utils::${ISA_CHECK});
+    $else:
+      /*isa_check=*/nullptr);
+}\n
+$if KERNELTYPE in ['qb4w']:
+  BENCHMARK_GEMM_BL(${UKERNEL_NAME})
+$else:
+  BENCHMARK_GEMM(${UKERNEL_NAME})
+"""
 
 GEMM_CREATE_TESTS_CODE = """\
 std::vector<GemmTestParams> CreateTests(
@@ -676,10 +705,33 @@ def main(args):
 #include "gemm-microkernel-tester.h"
 #include "next_prime.h"
 """.format(ukernel=ukernel, generator=sys.argv[0])
+
+  benches = """\
+// Copyright 2023 Google LLC
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+//
+// Auto-generated file. Do not edit!
+//   Microkernel: {ukernel}
+//   Generator: {generator}
+
+#include <benchmark/benchmark.h>
+#include "gemm-benchmark.h"
+#include "utils.h"
+#include "xnnpack/common.h"
+#include "xnnpack/gemm.h"
+#include "xnnpack/isa-checks.h"
+#include "xnnpack/microfnptr.h"
+#include "xnnpack/microparams-init.h"
+#include "xnnpack/pack.h"
+#include "xnnpack/packw.h"
+""".format(ukernel=ukernel, generator=sys.argv[0])
   
   test_cases = ""
   
   test_outputs = collections.defaultdict(str)
+  bench_outputs = benches
 
   parts = ukernel.split("-")
   datatype = parts[0]
@@ -780,13 +832,15 @@ def main(args):
   ))
   
   tests += f'#include "{xnncommon.xnnpack_src()}{folder}/{ukernel}.h"\n'
-  print("PATH = ", f"{xnncommon.xnnpack_src()}{folder}/{ukernel}.h")
   tests += "#undef XNN_UKERNEL_WITH_PARAMS\n"
 
   output_index = zlib.crc32(bytes(ukernel, "utf-8")) % num_output_files
   test_outputs[options.output_test[output_index]] += "" 
 
   for output_name, content in test_outputs.items():
+    print(f"Debug: options.output_test = {options.output_test}")
+    print(f"KERNEL_TYPE : {kerneltype}")
+    print(f"UKERNEL_TYPE : {ukernel_type}")
     xnncommon.overwrite_if_changed(output_name, tests + content)
 
 if __name__ == "__main__":
