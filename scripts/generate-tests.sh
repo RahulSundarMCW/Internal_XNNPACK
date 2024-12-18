@@ -10,10 +10,11 @@ tools/generate-gemm-test.py --ukernel bf16-gemm-minmax --output-test test/bf16-g
 tools/generate-gemm-test.py --ukernel f16-gemm-minmax        --output-test test/f16-gemm-minmax.cc &
 tools/generate-gemm-test.py --ukernel f16-f32acc-gemm-minmax --output-test test/f16-f32acc-gemm-minmax.cc &
 
-tools/generate-gemm-test.py --ukernel f32-gemm            --output-test test/f32-gemm.cc           --output-test test/f32-gemm-2.cc &
-tools/generate-gemm-test.py --ukernel f32-gemm-relu       --output-test test/f32-gemm-relu.cc      --output-test test/f32-gemm-relu-2.cc &
-tools/generate-gemm-test.py --ukernel f32-gemm-minmax     --output-test test/f32-gemm-minmax.cc    --output-test test/f32-gemm-minmax-2.cc &
-tools/generate-gemm-test.py --ukernel f32-gemminc-minmax  --output-test test/f32-gemminc-minmax.cc --output-test test/f32-gemminc-minmax-2.cc &
+tools/generate-gemm-test.py --ukernel f32-gemm            --output-test test/f32-gemm.cc &
+tools/generate-gemm-test.py --ukernel f32-gemm-relu       --output-test test/f32-gemm-relu.cc &
+tools/generate-gemm-test.py --ukernel f32-gemm-minmax     --output-test test/f32-gemm-minmax.cc &
+### TODO
+tools/generate-gemm-test.py --ukernel f32-gemminc-minmax  --output-test test/f32-gemminc-minmax.cc &
 tools/generate-gemm-test.py --ukernel f32-gemm-goi-minmax --output-test test/f32-gemm-goi-minmax.cc &
 
 tools/generate-gemm-test.py --ukernel f32-qc4w-gemm-minmax --output-test test/f32-qc4w-gemm-minmax.cc &
@@ -22,36 +23,36 @@ tools/generate-gemm-test.py --ukernel f32-qc8w-gemm        --output-test test/f3
 tools/generate-gemm-test.py --ukernel f32-qc8w-gemm-relu   --output-test test/f32-qc8w-gemm-relu.cc   &
 tools/generate-gemm-test.py --ukernel f32-qc8w-gemm-minmax --output-test test/f32-qc8w-gemm-minmax.cc &
 
-tools/generate-gemm-test.py --ukernel qu8-gemm-minmax-fp32 --output-test test/qu8-gemm-minmax-fp32.cc --output-test test/qu8-gemm-minmax-fp32-2.cc &
-tools/generate-gemm-test.py --ukernel qu8-gemm-minmax-rndnu --output-test test/qu8-gemm-minmax-rndnu.cc --output-test test/qu8-gemm-minmax-rndnu-2.cc &
+tools/generate-gemm-test.py --ukernel qu8-gemm-minmax-fp32 --output-test test/qu8-gemm-minmax-fp32.cc &
+tools/generate-gemm-test.py --ukernel qu8-gemm-minmax-rndnu --output-test test/qu8-gemm-minmax-rndnu.cc &
 
-tools/generate-gemm-test.py --ukernel qd8-f16-qc4w-gemm-minmax --output-test test/qd8-f16-qc4w-gemm-minmax.cc  --output-test test/qd8-f16-qc4w-gemm-minmax-2.cc  --output-test test/qd8-f16-qc4w-gemm-minmax-3.cc  --output-test test/qd8-f16-qc4w-gemm-minmax-4.cc &
+tools/generate-gemm-test.py --ukernel qd8-f16-qc4w-gemm-minmax --output-test test/qd8-f16-qc4w-gemm-minmax.cc &
 tools/generate-gemm-test.py --ukernel qd8-f16-qb4w-gemm-minmax --output-test test/qd8-f16-qb4w-gemm-minmax.cc &
-tools/generate-gemm-test.py --ukernel qd8-f16-qc8w-gemm-minmax --output-test test/qd8-f16-qc8w-gemm-minmax.cc --output-test test/qd8-f16-qc8w-gemm-minmax-2.cc --output-test test/qd8-f16-qc8w-gemm-minmax-3.cc --output-test test/qd8-f16-qc8w-gemm-minmax-4.cc &
-tools/generate-gemm-test.py --ukernel qd8-f32-qc8w-gemm-minmax --output-test test/qd8-f32-qc8w-gemm-minmax.cc  --output-test test/qd8-f32-qc8w-gemm-minmax-2.cc  --output-test test/qd8-f32-qc8w-gemm-minmax-3.cc  --output-test test/qd8-f32-qc8w-gemm-minmax-4.cc &
-tools/generate-gemm-test.py --ukernel qd8-f32-qc4w-gemm-minmax --output-test test/qd8-f32-qc4w-gemm-minmax.cc  --output-test test/qd8-f32-qc4w-gemm-minmax-2.cc  --output-test test/qd8-f32-qc4w-gemm-minmax-3.cc  --output-test test/qd8-f32-qc4w-gemm-minmax-4.cc &
+tools/generate-gemm-test.py --ukernel qd8-f16-qc8w-gemm-minmax --output-test test/qd8-f16-qc8w-gemm-minmax.cc &
+tools/generate-gemm-test.py --ukernel qd8-f32-qc8w-gemm-minmax --output-test test/qd8-f32-qc8w-gemm-minmax.cc &
+tools/generate-gemm-test.py --ukernel qd8-f32-qc4w-gemm-minmax --output-test test/qd8-f32-qc4w-gemm-minmax.cc &
 tools/generate-gemm-test.py --ukernel qd8-f32-qb4w-gemm-minmax --output-test test/qd8-f32-qb4w-gemm-minmax.cc &
 
 tools/generate-gemm-test.py --ukernel qp8-f32-qc4w-gemm-minmax --output-test test/qp8-f32-qc4w-gemm-minmax.cc &
 tools/generate-gemm-test.py --ukernel qp8-f32-qb4w-gemm-minmax --output-test test/qp8-f32-qb4w-gemm-minmax.cc &
 
-tools/generate-gemm-test.py --ukernel qs8-qc8w-gemm-minmax-fp32 --output-test test/qs8-qc8w-gemm-minmax-fp32.cc --output-test test/qs8-qc8w-gemm-minmax-fp32-2.cc --output-test test/qs8-qc8w-gemm-minmax-fp32-3.cc &
+tools/generate-gemm-test.py --ukernel qs8-qc8w-gemm-minmax-fp32 --output-test test/qs8-qc8w-gemm-minmax-fp32.cc &
 
 ### Tests for IGEMM micro-kernels
 tools/generate-gemm-test.py --ukernel f16-igemm-minmax --output-test test/f16-igemm-minmax.cc &
 tools/generate-gemm-test.py --ukernel f16-f32acc-igemm-minmax --output-test test/f16-f32acc-igemm-minmax.cc &
 
-tools/generate-gemm-test.py --ukernel f32-igemm --output-test test/f32-igemm.cc --output-test test/f32-igemm-2.cc &
-tools/generate-gemm-test.py --ukernel f32-igemm-relu --output-test test/f32-igemm-relu.cc --output-test test/f32-igemm-relu-2.cc &
-tools/generate-gemm-test.py --ukernel f32-igemm-minmax --output-test test/f32-igemm-minmax.cc --output-test test/f32-igemm-minmax-2.cc &
+tools/generate-gemm-test.py --ukernel f32-igemm --output-test test/f32-igemm.cc &
+tools/generate-gemm-test.py --ukernel f32-igemm-relu --output-test test/f32-igemm-relu.cc &
+tools/generate-gemm-test.py --ukernel f32-igemm-minmax --output-test test/f32-igemm-minmax.cc &
 
-tools/generate-gemm-test.py --ukernel qd8-f16-qc8w-igemm-minmax --output-test test/qd8-f16-qc8w-igemm-minmax.cc --output-test test/qd8-f16-qc8w-igemm-minmax-2.cc --output-test test/qd8-f16-qc8w-igemm-minmax-3.cc --output-test test/qd8-f16-qc8w-igemm-minmax-4.cc &
-tools/generate-gemm-test.py --ukernel qd8-f32-qc8w-igemm-minmax --output-test test/qd8-f32-qc8w-igemm-minmax.cc --output-test test/qd8-f32-qc8w-igemm-minmax-2.cc --output-test test/qd8-f32-qc8w-igemm-minmax-3.cc &
+tools/generate-gemm-test.py --ukernel qd8-f16-qc8w-igemm-minmax --output-test test/qd8-f16-qc8w-igemm-minmax.cc &
+tools/generate-gemm-test.py --ukernel qd8-f32-qc8w-igemm-minmax --output-test test/qd8-f32-qc8w-igemm-minmax.cc &
 
-tools/generate-gemm-test.py --ukernel qu8-igemm-minmax-fp32 --output-test test/qu8-igemm-minmax-fp32.cc --output-test test/qu8-igemm-minmax-fp32-2.cc &
-tools/generate-gemm-test.py --ukernel qu8-igemm-minmax-rndnu --output-test test/qu8-igemm-minmax-rndnu.cc --output-test test/qu8-igemm-minmax-rndnu-2.cc &
+tools/generate-gemm-test.py --ukernel qu8-igemm-minmax-fp32 --output-test test/qu8-igemm-minmax-fp32.cc &
+tools/generate-gemm-test.py --ukernel qu8-igemm-minmax-rndnu --output-test test/qu8-igemm-minmax-rndnu.cc &
 
-tools/generate-gemm-test.py --ukernel qs8-qc8w-igemm-minmax-fp32 --output-test test/qs8-qc8w-igemm-minmax-fp32.cc --output-test test/qs8-qc8w-igemm-minmax-fp32-2.cc --output-test test/qs8-qc8w-igemm-minmax-fp32-3.cc &
+tools/generate-gemm-test.py --ukernel qs8-qc8w-igemm-minmax-fp32 --output-test test/qs8-qc8w-igemm-minmax-fp32.cc &
 
 ### Tests for PPMM micro-kernels
 tools/generate-gemm-test.py --ukernel f32-ppmm-minmax --output-test test/f32-ppmm-minmax.cc &

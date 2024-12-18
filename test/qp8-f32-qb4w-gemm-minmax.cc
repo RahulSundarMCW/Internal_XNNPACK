@@ -46,9 +46,6 @@ std::vector<GemmTestParams> CreateTests(
 
   const GemmMicrokernelTester tester = GemmMicrokernelTester()
       .mr(mr).nr(nr).kr(kr).sr(sr).mr_packed(mr_packed);
-  else:
-    const GemmMicrokernelTester tester = GemmMicrokernelTester()
-        .mr(mr).nr(nr).kr(kr).sr(sr);
 
   std::vector<GemmTestParams> gemm_tests;
   gemm_tests.reserve(42);
@@ -57,10 +54,8 @@ std::vector<GemmTestParams> CreateTests(
       "k_eq_" + kbs,
       tester.clone()
           .m(mr).n(nr).k(k_block)
-          if KERNELTYPE in ['qb4w', 'qc4w']:
-            .b_zero_point(8)
-          if KERNELTYPE in ['qb4w']:
-            .bl(32)
+          .b_zero_point(8)
+          .bl(32)
       , test_func));
   if (!is_igemm) {
     gemm_tests.push_back(GemmTestParams(
@@ -105,7 +100,6 @@ std::vector<GemmTestParams> CreateTests(
           .b_zero_point(8)
           .bl(32)
       , test_func));
-  }
     if (!is_igemm) {
       gemm_tests.push_back(GemmTestParams(
           "k_eq_" + kb2s + "_strided_a",
@@ -125,6 +119,7 @@ std::vector<GemmTestParams> CreateTests(
         , test_func)
         .loop_n(1, nr)
         .loop_m(1, mr));
+  }
   gemm_tests.push_back(GemmTestParams(
       "bl",
       tester.clone()

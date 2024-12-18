@@ -594,6 +594,7 @@ $if TEST_NAME.startswith('GENERATE') and DATATYPE in ['f32', 'f16'] and PROTOTYP
             &${PROTOTYPE});
     }
   #endif // XNN_ENABLE_ASSEMBLY
+
 """
 
 
