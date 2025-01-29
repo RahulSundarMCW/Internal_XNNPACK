@@ -176,3 +176,72 @@ class ReduceMicrokernelTester {
   size_t batch_size_{1};
   size_t iterations_{15};
 };
+
+
+#define XNN_TEST_REDUCE_BATCH_EQ(ukernel, arch_flags, batch_tile, datatype, output_type, ...)                          \
+  TEST(ukernel, batch_eq_##batch_tile)                                                                                 \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    const size_t batch_scale = get_batch_scale<datatype>();                                                            \
+    ReduceMicrokernelTester().batch_size(batch_tile* batch_scale).Test(__VA_ARGS__);                                   \
+  }
+
+#define XNN_TEST_REDUCE_BATCH_DIV(ukernel, arch_flags, batch_tile, datatype, output_type, ...)                         \
+  TEST(ukernel, batch_div_##batch_tile)                                                                                \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    const size_t batch_scale = get_batch_scale<datatype>();                                                            \
+    if (batch_tile <= 1 && batch_scale == 0) {                                                                         \
+      GTEST_SKIP();                                                                                                    \
+    }                                                                                                                  \
+    if (batch_scale == 0) {                                                                                            \
+      for (size_t batch_size = (batch_tile * 2); batch_size < (batch_tile * 10); batch_size += batch_tile) {           \
+        ReduceMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                            \
+      }                                                                                                                \
+    }                                                                                                                  \
+    else {                                                                                                             \
+      for (size_t batch_size = (batch_tile * 2) * batch_scale; batch_size < (batch_tile * 10) * batch_scale;           \
+           batch_size += (batch_tile * batch_scale)) {                                                                 \
+        ReduceMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                            \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_REDUCE_BATCH_LT(ukernel, arch_flags, batch_tile, datatype, output_type, ...)                          \
+  TEST(ukernel, batch_lt_##batch_tile)                                                                                 \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    const size_t batch_scale = get_batch_scale<datatype>();                                                            \
+    if (batch_tile <= 1 && batch_scale == 0) {                                                                         \
+      GTEST_SKIP();                                                                                                    \
+    }                                                                                                                  \
+    if (batch_scale == 0) {                                                                                            \
+      for (size_t batch_size = 1; batch_size < batch_tile; batch_size++) {                                             \
+        ReduceMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                            \
+      }                                                                                                                \
+    }                                                                                                                  \
+    else {                                                                                                             \
+      for (size_t batch_size = 1; batch_size < (batch_tile * batch_scale); batch_size++) {                             \
+        ReduceMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                            \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_REDUCE_BATCH_GT(ukernel, arch_flags, batch_tile, datatype, output_type, ...)                          \
+  TEST(ukernel, batch_gt_##batch_tile)                                                                                 \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    const size_t batch_scale = get_batch_scale<datatype>();                                                            \
+    if (batch_scale == 0) {                                                                                            \
+      for (size_t batch_size = (batch_tile + 1); batch_size < ((batch_tile == 1) ? 10 : batch_tile * 2);               \
+           batch_size++) {                                                                                             \
+        ReduceMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                            \
+      }                                                                                                                \
+    }                                                                                                                  \
+    else {                                                                                                             \
+      for (size_t batch_size = ((batch_tile * batch_scale) + 1);                                                       \
+           batch_size < ((batch_tile == 1) ? 10 : batch_tile * 2 * batch_scale); batch_size += (batch_tile * 2)) {     \
+        ReduceMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                            \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }

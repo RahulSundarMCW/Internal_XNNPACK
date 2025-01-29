@@ -265,3 +265,99 @@ class RSumMicrokernelTester {
   uint8_t qmin_{0};
   uint8_t qmax_{255};
 };
+
+
+#define XNN_TEST_REDUCE_BATCH_EQ(ukernel, arch_flags, batch_tile, datatype, output_type, ...)                          \
+  TEST(ukernel, batch_eq_##batch_tile)                                                                                 \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    const size_t batch_scale = get_batch_scale<datatype>();                                                            \
+    RSumMicrokernelTester().batch_size(batch_tile* batch_scale).Test(__VA_ARGS__);                                     \
+  }
+
+#define XNN_TEST_REDUCE_BATCH_DIV(ukernel, arch_flags, batch_tile, datatype, output_type, ...)                         \
+  TEST(ukernel, batch_div_##batch_tile)                                                                                \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    const size_t batch_scale = get_batch_scale<datatype>();                                                            \
+    if (batch_tile <= 1 && batch_scale == 0) {                                                                         \
+      GTEST_SKIP();                                                                                                    \
+    }                                                                                                                  \
+    if (batch_scale == 0) {                                                                                            \
+      for (size_t batch_size = (batch_tile * 2); batch_size < (batch_tile * 10); batch_size += batch_tile) {           \
+        RSumMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+    else {                                                                                                             \
+      for (size_t batch_size = (batch_tile * 2) * batch_scale; batch_size < (batch_tile * 10) * batch_scale;           \
+           batch_size += (batch_tile * batch_scale)) {                                                                 \
+        RSumMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_REDUCE_BATCH_LT(ukernel, arch_flags, batch_tile, datatype, output_type, ...)                          \
+  TEST(ukernel, batch_lt_##batch_tile)                                                                                 \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    const size_t batch_scale = get_batch_scale<datatype>();                                                            \
+    if (batch_tile <= 1 && batch_scale == 0) {                                                                         \
+      GTEST_SKIP();                                                                                                    \
+    }                                                                                                                  \
+    if (batch_scale == 0) {                                                                                            \
+      for (size_t batch_size = 1; batch_size < batch_tile; batch_size++) {                                             \
+        RSumMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+    else {                                                                                                             \
+      for (size_t batch_size = 1; batch_size < (batch_tile * batch_scale); batch_size++) {                             \
+        RSumMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_REDUCE_BATCH_GT(ukernel, arch_flags, batch_tile, datatype, output_type, ...)                          \
+  TEST(ukernel, batch_gt_##batch_tile)                                                                                 \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    const size_t batch_scale = get_batch_scale<datatype>();                                                            \
+    if (batch_scale == 0) {                                                                                            \
+      for (size_t batch_size = (batch_tile + 1); batch_size < ((batch_tile == 1) ? 10 : batch_tile * 2);               \
+           batch_size++) {                                                                                             \
+        RSumMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+    else {                                                                                                             \
+      for (size_t batch_size = ((batch_tile * batch_scale) + 1);                                                       \
+           batch_size < ((batch_tile == 1) ? 10 : batch_tile * 2 * batch_scale); batch_size += (batch_tile * 2)) {     \
+        RSumMicrokernelTester().batch_size(batch_size).Test(__VA_ARGS__);                                              \
+      }                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_REDUCE_SCALE(ukernel, arch_flags, batch_tile, datatype, output_type, ...)                             \
+  TEST(ukernel, scale_##batch_tile)                                                                                    \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    const size_t batch_scale = get_batch_scale<datatype>();                                                            \
+    for (float scale = 0.3f; scale < 5.0f; scale *= 3.0f) {                                                            \
+      RSumMicrokernelTester tester;                                                                                    \
+      if (batch_scale == 0) {                                                                                          \
+        tester.batch_size(batch_tile + 1);                                                                             \
+      }                                                                                                                \
+      else {                                                                                                           \
+        tester.batch_size((batch_scale * batch_tile) + 1);                                                             \
+      }                                                                                                                \
+      tester.scale(scale);                                                                                             \
+      tester.Test(__VA_ARGS__);                                                                                        \
+      ;                                                                                                                \
+    }                                                                                                                  \
+  }
+
+#define XNN_TEST_REDUCE_OVERFLOW_ACCUMULATOR(ukernel, arch_flags, batch_tile, datatype, output_type, ...)              \
+  TEST(ukernel, overflow_accumulator_##batch_tile)                                                                     \
+  {                                                                                                                    \
+    TEST_REQUIRES_ARCH_FLAGS(arch_flags);                                                                              \
+    RSumMicrokernelTester().batch_size(128 * batch_tile).Test(__VA_ARGS__);                                            \
+    ;                                                                                                                  \
+  }
